@@ -10,7 +10,7 @@ import urllib.parse
 import os
 import sys
 
-TIME_API = 0.1 # Maximal HTML requests per second is 10 due to NFZ Statistics API rules
+TIME_API = 0.1 # Maximal HTTP requests per second is 10 due to NFZ Statistics API rules
 MAX_ATTEMPTS = 5 # Maximal requests attempts for one URL
 year_list = list(range(2009, 2019)) # Years from 2009-2018 for which data will be downloaded
 
@@ -96,22 +96,23 @@ def index_of_tables(year): # Download the list of all available tables
                     else:
                         is_periods_data = False
         if (data_exist):
+            json_file_subdata = json_file['data']['attributes']['years'][table_number]
             if (not is_periods_data):
-                for j in range(len(json_file['data']['attributes']['years'][table_number]['tables'])):
-                    table_header = json_file['data']['attributes']['years'][table_number]['tables'][j]['attributes']['header']
-                    table_id = json_file['data']['attributes']['years'][table_number]['tables'][j]['id']
-                    table_type = json_file['data']['attributes']['years'][table_number]['tables'][j]['type']
-                    table_link = json_file['data']['attributes']['years'][table_number]['tables'][j]['links']['related']
+                for j in range(len(json_file_subdata['tables'])):
+                    table_header = json_file_subdata['tables'][j]['attributes']['header']
+                    table_id = json_file_subdata['tables'][j]['id']
+                    table_type = json_file_subdata['tables'][j]['type']
+                    table_link = json_file_subdata['tables'][j]['links']['related']
                     period = str(year)
                     list_temp.append([catalog, name, year, period, table_id, table_header, table_type, table_link])
             else:
-                for j in range(len(json_file['data']['attributes']['years'][table_number]['periods'][0]['tables'])):
-                    table_header = json_file['data']['attributes']['years'][table_number]['periods'][0]['tables'][j]['attributes']['header']
-                    table_id = json_file['data']['attributes']['years'][table_number]['periods'][0]['tables'][j]['id']
-                    table_type = json_file['data']['attributes']['years'][table_number]['periods'][0]['tables'][j]['type']
-                    table_link = json_file['data']['attributes']['years'][table_number]['periods'][0]['tables'][j]['links']['related']
-                    date_from = json_file['data']['attributes']['years'][table_number]['periods'][0]['date-from']
-                    date_to = json_file['data']['attributes']['years'][table_number]['periods'][0]['date-to']
+                for j in range(len(json_file_subdata['periods'][0]['tables'])):
+                    table_header = json_file_subdata['periods'][0]['tables'][j]['attributes']['header']
+                    table_id = json_file_subdata['periods'][0]['tables'][j]['id']
+                    table_type = json_file_subdata['periods'][0]['tables'][j]['type']
+                    table_link = json_file_subdata['periods'][0]['tables'][j]['links']['related']
+                    date_from = json_file_subdata['periods'][0]['date-from']
+                    date_to = json_file_subdata['periods'][0]['date-to']
                     period = date_from + '-' + date_to
                     list_temp.append([catalog, name, year, period, table_id, table_header, table_type, table_link])
             df = pd.DataFrame(list_temp, columns = ['catalog', 'name', 'year', 'period', 'id', 'header', 'type', 'link'])
@@ -174,7 +175,7 @@ if not os.path.isdir('data/annual'):
     try:
         os.makedirs('data/annual')
     except OSError:
-        print ("Creation of the directory is failed")
+        print ("Creation of the directory failed")
         sys.exit()
 
 # Downloading data and creating the table 'benefits.csv'
