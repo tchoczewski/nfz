@@ -1,10 +1,6 @@
 # =============================================================================
-# Script to download data from API NFZ:
+# Script to download data from NFZ Statistics API:
 # https://api.nfz.gov.pl/app-stat-api-jgp/
-# =============================================================================
- 
-# =============================================================================
-# Importing libraries
 # =============================================================================
 
 import requests
@@ -14,15 +10,15 @@ import urllib.parse
 import os
 import sys
 
-TIME_API = 0.1 # Maximal HTML requests per second is 10 due to API NFZ rules
-MAX_ATTEMPTS = 5 # Maximal requests attempts for one URL before exit
+TIME_API = 0.1 # Maximal HTML requests per second is 10 due to NFZ Statistics API rules
+MAX_ATTEMPTS = 5 # Maximal requests attempts for one URL
 year_list = list(range(2009, 2019)) # Years from 2009-2018 for which data will be downloaded
 
 # =============================================================================
 # Functions
 # =============================================================================
 
-def get_html(path, delta):
+def get_html(path, delta): # Get JSON requests
     if delta <= TIME_API:
         time.sleep(TIME_API - delta)
     attempts = 0
@@ -39,7 +35,7 @@ def get_html(path, delta):
         sys.exit()
     return json_file
 
-def benefits(): # Function to download the benefits dictionary (catalogs: 1a - Jednorodne Grupy Pacjentow, 1b - Katalog swiadczen odrebnych, 1c - Katalog swiadczen do sumowania, 1d - Katalog swiadczen radioterapii, 1w - Katalog swiadczen wysokospecjalistycznych)
+def benefits(): # Download the benefits dictionary (catalogs: 1a - Jednorodne Grupy Pacjentow, 1b - Katalog swiadczen odrebnych, 1c - Katalog swiadczen do sumowania, 1d - Katalog swiadczen radioterapii, 1w - Katalog swiadczen wysokospecjalistycznych)
     filepath = 'data/benefits.csv'
     if os.path.isfile(filepath):
         return
@@ -64,7 +60,7 @@ def benefits(): # Function to download the benefits dictionary (catalogs: 1a - J
     benefits.to_csv(filepath, index = False)  
     print("Runtime - benefits: " + str(round(time.time() - start_time, 2)))
     
-def index_of_tables(year): # Function to download list of all available tables
+def index_of_tables(year): # Download the list of all available tables
     filepath = 'data/annual/index-of-tables-' + str(year) + '.csv'
     if os.path.isfile(filepath) or os.path.isfile('data/index-of-tables.csv'):
         return
@@ -95,7 +91,7 @@ def index_of_tables(year): # Function to download list of all available tables
                 if (data_year == year):
                     data_exist = True
                     table_number = k
-                    if (type(json_file['data']['attributes']['years'][k]['periods']) == list): # Is data periodic or fullyear
+                    if (type(json_file['data']['attributes']['years'][k]['periods']) == list): # Is data period or full-year
                         is_periods_data = True
                     else:
                         is_periods_data = False
@@ -124,7 +120,7 @@ def index_of_tables(year): # Function to download list of all available tables
     index_of_tables.to_csv(filepath, index = False)   
     print('Runtime - index-of-tables-' + str(year) + ': ' + str(round(time.time() - start_time, 2)))
 
-def medical_data(year, table_type): # General function to download choosen medical data
+def medical_data(year, table_type): # Download medical data
     filepath = 'data/annual/' + table_type + '-' + str(year) + '.csv'
     if os.path.isfile(filepath) or os.path.isfile(table_type + '.csv'):
         return
@@ -181,10 +177,10 @@ if not os.path.isdir('data/annual'):
         print ("Creation of the directory is failed")
         sys.exit()
 
-# Downloading data and creating the table 'benefits.csv' with the benefits dictionary
+# Downloading data and creating the table 'benefits.csv'
 benefits() 
 
-# Downloading data and creating the table 'index-of-tables.csv' with the information about tables
+# Downloading data and creating the table 'index-of-tables.csv'
 filenames = []
 filepath = 'data/index-of-tables.csv'
 if not os.path.isfile(filepath):
@@ -193,7 +189,7 @@ if not os.path.isfile(filepath):
         filenames.append('data/annual/index-of-tables-' + str(year) + '.csv')
     pd.concat([pd.read_csv(f) for f in filenames]).to_csv('data/index-of-tables.csv', index=False )
 
-# Downloading data and creating tables with choosen medical data
+# Downloading data and creating tables with medical data
 table_list = ['general-data', 'hospitalization-by-age', 'hospitalization-by-gender', 'hospitalization-by-admission', 'hospitalization-by-discharge', 'histograms', 'icd-9-procedures', 'icd-10-diseases', 'product-categories', 'hospitalization-by-service', 'hospitalization-by-admission-nfz']
 for year in year_list:
     for table in table_list:
