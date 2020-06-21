@@ -12,7 +12,8 @@ import sys
 
 TIME_API = 0.1 # Maximal HTTP requests per second is 10 due to NFZ Statistics API rules
 MAX_ATTEMPTS = 5 # Maximal requests attempts for one URL
-year_list = list(range(2009, 2019)) # Years from 2009-2018 for which data will be downloaded
+year_list = list(range(2009, 2020)) # Years from 2009-2019 for which data will be downloaded
+table_list = ['general-data', 'hospitalization-by-age', 'hospitalization-by-gender', 'hospitalization-by-admission', 'hospitalization-by-discharge', 'histograms', 'icd-9-procedures', 'icd-10-diseases', 'product-categories', 'hospitalization-by-service', 'hospitalization-by-admission-nfz']
 
 # =============================================================================
 # Functions
@@ -62,7 +63,7 @@ def benefits(): # Download the benefits dictionary (catalogs: 1a - Jednorodne Gr
     
 def index_of_tables(year): # Download the list of all available tables
     filepath = 'data/annual/index-of-tables-' + str(year) + '.csv'
-    if os.path.isfile(filepath) or os.path.isfile('data/index-of-tables.csv'):
+    if os.path.isfile(filepath):
         return
     start_time = time.time()
     time1 = start_time
@@ -123,7 +124,7 @@ def index_of_tables(year): # Download the list of all available tables
 
 def medical_data(year, table_type): # Download medical data
     filepath = 'data/annual/' + table_type + '-' + str(year) + '.csv'
-    if os.path.isfile(filepath) or os.path.isfile(table_type + '.csv'):
+    if os.path.isfile(filepath):
         return
     index_of_tables = pd.read_csv('data/index-of-tables.csv')
     df = index_of_tables.loc[(index_of_tables['type'] == table_type) & (index_of_tables['year'] == year)][['name', 'catalog', 'year', 'period', 'link']]
@@ -183,15 +184,12 @@ benefits()
 
 # Downloading data and creating the table 'index-of-tables.csv'
 filenames = []
-filepath = 'data/index-of-tables.csv'
-if not os.path.isfile(filepath):
-    for year in year_list:
-        index_of_tables(year)
-        filenames.append('data/annual/index-of-tables-' + str(year) + '.csv')
-    pd.concat([pd.read_csv(f) for f in filenames]).to_csv('data/index-of-tables.csv', index=False )
+for year in year_list:
+    index_of_tables(year)
+    filenames.append('data/annual/index-of-tables-' + str(year) + '.csv')
+pd.concat([pd.read_csv(f) for f in filenames]).to_csv('data/index-of-tables.csv', index=False )
 
 # Downloading data and creating tables with medical data
-table_list = ['general-data', 'hospitalization-by-age', 'hospitalization-by-gender', 'hospitalization-by-admission', 'hospitalization-by-discharge', 'histograms', 'icd-9-procedures', 'icd-10-diseases', 'product-categories', 'hospitalization-by-service', 'hospitalization-by-admission-nfz']
 for year in year_list:
     for table in table_list:
         medical_data(year, table)
@@ -199,8 +197,8 @@ for year in year_list:
 # Joining tables
 for table_name in table_list:
     filenames = []
-    filepath = 'data/' + table_name + '.csv'
-    if not os.path.isfile(filepath):
-        for year in year_list:
-            filenames.append('data/annual' + table_name + '-' + str(year) + '.csv') 
-        pd.concat([pd.read_csv(f) for f in filenames]).to_csv('data/' + table_name + '.csv', index=False )
+    for year in year_list:
+        filenames.append('data/annual/' + table_name + '-' + str(year) + '.csv') 
+    pd.concat([pd.read_csv(f) for f in filenames]).to_csv('data/' + table_name + '.csv', index=False )
+    
+print("Data download successful!")
