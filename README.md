@@ -1,18 +1,18 @@
-# National Health Fund of Poland (polish: Narodowy Fundusz Zdrowia, NFZ) medical statistics for years 2009-2019
+## National Health Fund of Poland (Narodowy Fundusz Zdrowia, NFZ) medical statistics for years 2009-2019
 
-## Data source
+### Data source
 National Health Fund of Poland provides API access to medical data: \
 https://api.nfz.gov.pl/app-stat-api-jgp \
 Some data can also be searched manually here: \
 https://statystyki.nfz.gov.pl/Benefits
 
-## Data download
+### Data download
 I wrote a Python script to download the data, it can be found in the current github repository: \
 https://github.com/tchoczewski/nfz/blob/master/download_data.py \
 All downloaded data can be found here: \
 https://github.com/tchoczewski/nfz/tree/master/data
 
-## Data structure
+### Data structure
 For given year and diagnosis-related group (DRG, polish: Jednorodne Grupy Pacjentów, JGP) data are aggregated in some categories:
 * __general-data:__ consists of general information like number of patients/hospitalizations
 * __histograms:__ number of hospitalizations by days of stay (0-50 days)
@@ -30,10 +30,10 @@ A given hospitalization can be classified into only one DRG group. There are two
 * __benefits:__ dictionary with all DRG codes
 * __index-of-tables:__ identification numbers and links to all available tables in database
 
-## Example
+### Example
 If we choose year 2019 and DRG group called "A86 CHOROBY NEURONU RUCHOWEGO" we will see the following information in selected tables:
 
-### hospitalization-by-age
+#### hospitalization-by-age
  | branch | hospital-types | age-group-code | age-group-name | number-of-hospitalizations | percentage | duration-of-hospitalization-mediana | name | catalog | year | period | 
  | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | 
  |  |  | 1 | poniżej 1 | 29 | 1,6 | 1 | A86 CHOROBY NEURONU RUCHOWEGO | 1a | 2019 | 2019 | 
@@ -45,7 +45,7 @@ If we choose year 2019 and DRG group called "A86 CHOROBY NEURONU RUCHOWEGO" we w
  |  |  | 7 | 81 i więcej | 51 | 2,82 | 7 | A86 CHOROBY NEURONU RUCHOWEGO | 1a | 2019 | 2019 | 
  |  |  | 8 | brak danych | 0 | 0 | 0 | A86 CHOROBY NEURONU RUCHOWEGO | 1a | 2019 | 2019 | 
 
-### hospitalization-by-gender
+#### hospitalization-by-gender
  | branch | hospital-types | gender-code | gender-name | number-of-hospitalizations | percentage | duration-of-hospitalization-mediana | name | catalog | year | period | 
  | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | 
  |  |  | 0 | płeć nieokreślona | 0 | 0 | 0 | A86 CHOROBY NEURONU RUCHOWEGO | 1a | 2019 | 2019 | 
@@ -53,7 +53,7 @@ If we choose year 2019 and DRG group called "A86 CHOROBY NEURONU RUCHOWEGO" we w
  |  |  | 2 | kobieta | 825 | 45,58 | 3 | A86 CHOROBY NEURONU RUCHOWEGO | 1a | 2019 | 2019 | 
  |  |  | 1 | mężczyzna | 985 | 54,42 | 4 | A86 CHOROBY NEURONU RUCHOWEGO | 1a | 2019 | 2019 | 
 
-### icd-10-diseases
+#### icd-10-diseases
  | disease-code | disease-name | number-of-hospitalizations | percentage | duration-of-hospitalization-mediana | name | catalog | year | period | 
  | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | ----- | 
  | G12.2 | Stwardnienie boczne zanikowe | 1016 | 56,13 | 5 | A86 CHOROBY NEURONU RUCHOWEGO | 1a | 2019 | 2019 | 
