@@ -22,7 +22,7 @@ For given year and diagnosis-related group (DRG, polish: Jednorodne Grupy Pacjen
 * __hospitalization-by-discharge:__ number of hospitalizations by the reason for discharge from the hospital
 * __hospitalization-by-gender:__ number of hospitalizations by patient gender (kobieta: female, mężczyzna: male)
 * __hospitalization-by-service:__ number of hospitalizations by contract type (NFZ specific)
-* __icd-10-diseases:__ number of diagnosis of diseases of diseases in ICD-10 classification
+* __icd-10-diseases:__ number of diagnosis of diseases in ICD-10 classification
 * __icd-9-procedures:__ number of medical procedures in ICD-9 classification
 * __product-categories:__ number of hospitalizations by category type (NFZ specific)
 
