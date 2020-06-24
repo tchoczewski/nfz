@@ -7,7 +7,7 @@ Some data can also be searched manually here: \
 https://statystyki.nfz.gov.pl/Benefits
 
 ## Data download
-I wrote a Python script to download data, it can be found in the current github repository: \
+I wrote a Python script to download the data, it can be found in the current github repository: \
 https://github.com/tchoczewski/nfz/blob/master/download_data.py \
 All downloaded data can be found here: \
 https://github.com/tchoczewski/nfz/tree/master/data
@@ -26,7 +26,7 @@ For given year and diagnosis-related group (DRG, polish: Jednorodne Grupy Pacjen
 * __icd-9-procedures:__ number of medical procedures in ICD-9 classification
 * __product-categories:__ number of hospitalizations by category type (NFZ specific)
 
-Given hospitalization can be classified into only one DRG group. There are two additional tables containing information necessary to download the data (these tables are downloaded by the script at the beginning):
+A given hospitalization can be classified into only one DRG group. There are two additional tables containing information necessary to download the data (these tables are downloaded by the script at the beginning):
 * __benefits:__ dictionary with all DRG codes
 * __index-of-tables:__ identification numbers and links to all available tables in database
 

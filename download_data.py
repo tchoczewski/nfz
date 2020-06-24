@@ -1,5 +1,5 @@
 # =============================================================================
-# Script to download data from NFZ Statistics API:
+# Script to download the data using API of National Health Fund of Poland (polish: Narodowy Fundusz Zdrowia, NFZ):
 # https://api.nfz.gov.pl/app-stat-api-jgp/
 # =============================================================================
 
@@ -12,14 +12,14 @@ import sys
 
 TIME_API = 0.1 # Maximal HTTP requests per second is 10 due to NFZ Statistics API rules
 MAX_ATTEMPTS = 5 # Maximal requests attempts for one URL
-year_list = list(range(2009, 2020)) # Years from 2009-2019 for which data will be downloaded
-table_list = ['general-data', 'hospitalization-by-age', 'hospitalization-by-gender', 'hospitalization-by-admission', 'hospitalization-by-discharge', 'histograms', 'icd-9-procedures', 'icd-10-diseases', 'product-categories', 'hospitalization-by-service', 'hospitalization-by-admission-nfz']
+years = list(range(2009, 2020)) # Years from 2009-2019 for which data will be downloaded
+tables = ['general-data', 'hospitalization-by-age', 'hospitalization-by-gender', 'hospitalization-by-admission', 'hospitalization-by-discharge', 'histograms', 'icd-9-procedures', 'icd-10-diseases', 'product-categories', 'hospitalization-by-service', 'hospitalization-by-admission-nfz']
 
 # =============================================================================
 # Functions
 # =============================================================================
 
-def get_html(path, delta): # Get JSON requests
+def get_json(path, delta): # Get JSON request from given URL
     if delta <= TIME_API:
         time.sleep(TIME_API - delta)
     attempts = 0
@@ -36,93 +36,7 @@ def get_html(path, delta): # Get JSON requests
         sys.exit()
     return json_file
 
-def benefits(): # Download the benefits dictionary (catalogs: 1a - Jednorodne Grupy Pacjentow, 1b - Katalog swiadczen odrebnych, 1c - Katalog swiadczen do sumowania, 1d - Katalog swiadczen radioterapii, 1w - Katalog swiadczen wysokospecjalistycznych)
-    filepath = 'data/benefits.csv'
-    if os.path.isfile(filepath):
-        return
-    start_time = time.time()
-    time1 = start_time
-    catalogs = ['1a', '1b', '1c', '1d', '1w']
-    benefits = pd.DataFrame(columns = ['code', 'name', 'catalog'])
-    for catalog in catalogs:
-        page = 0
-        not_empty = True
-        while (not_empty):
-            page += 1
-            path = 'https://api.nfz.gov.pl/app-stat-api-jgp/benefits?benefit=%%%&catalog=' + catalog + '&format=json&limit=25&api-version=1.0' + '&page=' + str(page)
-            delta = time.time() - time1
-            json_file = get_html(path, delta)
-            time1 = time.time()
-            df = pd.json_normalize(json_file["data"])
-            df['catalog'] = catalog
-            benefits = benefits.append(df)
-            not_empty = (len(df) > 0)
-    benefits = benefits.drop_duplicates()
-    benefits.to_csv(filepath, index = False)  
-    print("Runtime - benefits: " + str(round(time.time() - start_time, 2)))
-    
-def index_of_tables(year): # Download the list of all available tables
-    filepath = 'data/annual/index-of-tables-' + str(year) + '.csv'
-    if os.path.isfile(filepath):
-        return
-    start_time = time.time()
-    time1 = start_time
-    benefits = pd.read_csv("data/benefits.csv")
-    list_temp = []
-    iterations = len(benefits['name'])
-    index_of_tables = pd.DataFrame(columns = ['catalog', 'name', 'year', 'period', 'id', 'header', 'type', 'link'])
-    for i in range(iterations):
-        if (i % 100 == 0):
-            print('index-of-tables-' + str(year) + ': ' + str(round(i*100/iterations, 1)) + '%')
-        name = benefits['name'][i]
-        name_parsed = urllib.parse.quote(name)
-        catalog = benefits['catalog'][i]
-        list_temp.clear()
-        table_number = 0
-        data_exist = False
-        is_periods_data = False
-        path = 'https://api.nfz.gov.pl/app-stat-api-jgp/index-of-tables?catalog=' + catalog + '&format=json&api-version=1.0&name=' + name_parsed
-        delta = time.time() - time1
-        json_file = get_html(path, delta)
-        time1 = time.time()
-        if (json_file['data'] != None):
-            years_number = len(json_file['data']['attributes']['years'])
-            for k in range(years_number):
-                data_year = json_file['data']['attributes']['years'][k]['year']
-                if (data_year == year):
-                    data_exist = True
-                    table_number = k
-                    if (type(json_file['data']['attributes']['years'][k]['periods']) == list): # Is data period or full-year
-                        is_periods_data = True
-                    else:
-                        is_periods_data = False
-        if (data_exist):
-            json_file_subdata = json_file['data']['attributes']['years'][table_number]
-            if (not is_periods_data):
-                for j in range(len(json_file_subdata['tables'])):
-                    table_header = json_file_subdata['tables'][j]['attributes']['header']
-                    table_id = json_file_subdata['tables'][j]['id']
-                    table_type = json_file_subdata['tables'][j]['type']
-                    table_link = json_file_subdata['tables'][j]['links']['related']
-                    period = str(year)
-                    list_temp.append([catalog, name, year, period, table_id, table_header, table_type, table_link])
-            else:
-                for j in range(len(json_file_subdata['periods'][0]['tables'])):
-                    table_header = json_file_subdata['periods'][0]['tables'][j]['attributes']['header']
-                    table_id = json_file_subdata['periods'][0]['tables'][j]['id']
-                    table_type = json_file_subdata['periods'][0]['tables'][j]['type']
-                    table_link = json_file_subdata['periods'][0]['tables'][j]['links']['related']
-                    date_from = json_file_subdata['periods'][0]['date-from']
-                    date_to = json_file_subdata['periods'][0]['date-to']
-                    period = date_from + '-' + date_to
-                    list_temp.append([catalog, name, year, period, table_id, table_header, table_type, table_link])
-            df = pd.DataFrame(list_temp, columns = ['catalog', 'name', 'year', 'period', 'id', 'header', 'type', 'link'])
-            index_of_tables = index_of_tables.append(df)
-    index_of_tables = index_of_tables.drop_duplicates()
-    index_of_tables.to_csv(filepath, index = False)   
-    print('Runtime - index-of-tables-' + str(year) + ': ' + str(round(time.time() - start_time, 2)))
-
-def medical_data(year, table_type): # Download medical data
+def medical_data(year, table_type): # Download medical data for selected year and type (required the table 'index-of-tables.csv')
     filepath = 'data/annual/' + table_type + '-' + str(year) + '.csv'
     if os.path.isfile(filepath):
         return
@@ -146,7 +60,7 @@ def medical_data(year, table_type): # Download medical data
             page += 1
             path = 'https://api.nfz.gov.pl/app-stat-api-jgp' + data_link + '?page=' + str(page) + '&limit=25&format=json&api-version=1.0'
             delta = time.time() - time1
-            json_file = get_html(path, delta)
+            json_file = get_json(path, delta)
             time1 = time.time()
             not_empty = ('data' in json_file)
             if (not_empty):
@@ -172,6 +86,7 @@ def medical_data(year, table_type): # Download medical data
 # Main
 # =============================================================================
 
+# Creating the directory for downloaded data
 if not os.path.isdir('data/annual'):
     try:
         os.makedirs('data/annual')
@@ -179,26 +94,104 @@ if not os.path.isdir('data/annual'):
         print ("Creation of the directory failed")
         sys.exit()
 
-# Downloading data and creating the table 'benefits.csv'
-benefits() 
+# Downloading data and creating the table 'benefits.csv' with benefits dictionary (catalogs: 1a - Jednorodne Grupy Pacjentow, 1b - Katalog swiadczen odrebnych, 1c - Katalog swiadczen do sumowania, 1d - Katalog swiadczen radioterapii, 1w - Katalog swiadczen wysokospecjalistycznych)
+filepath = 'data/benefits.csv'
+if not os.path.isfile(filepath):
+    start_time = time.time()
+    time1 = start_time
+    catalogs = ['1a', '1b', '1c', '1d', '1w']
+    benefits = pd.DataFrame(columns = ['code', 'name', 'catalog'])
+    for catalog in catalogs:
+        page = 0
+        not_empty = True
+        while (not_empty):
+            page += 1
+            path = 'https://api.nfz.gov.pl/app-stat-api-jgp/benefits?benefit=%%%&catalog=' + catalog + '&format=json&limit=25&api-version=1.0' + '&page=' + str(page)
+            delta = time.time() - time1
+            json_file = get_json(path, delta)
+            time1 = time.time()
+            df = pd.json_normalize(json_file["data"])
+            df['catalog'] = catalog
+            benefits = benefits.append(df)
+            not_empty = (len(df) > 0)
+    benefits = benefits.drop_duplicates()
+    benefits.to_csv(filepath, index = False)  
+    print("Runtime - benefits: " + str(round(time.time() - start_time, 2)))
 
-# Downloading data and creating the table 'index-of-tables.csv'
+# Downloading data and creating the table 'index-of-tables.csv' with the list of all available tables in the database
 filenames = []
-for year in year_list:
-    index_of_tables(year)
+for year in years:
+    filepath = 'data/annual/index-of-tables-' + str(year) + '.csv'
+    if not os.path.isfile(filepath):
+        start_time = time.time()
+        time1 = start_time
+        benefits = pd.read_csv("data/benefits.csv")
+        list_temp = []
+        iterations = len(benefits['name'])
+        index_of_tables = pd.DataFrame(columns = ['catalog', 'name', 'year', 'period', 'id', 'header', 'type', 'link'])
+        for i in range(iterations):
+            if (i % 100 == 0):
+                print('index-of-tables-' + str(year) + ': ' + str(round(i*100/iterations, 1)) + '%')
+            name = benefits['name'][i]
+            name_parsed = urllib.parse.quote(name)
+            catalog = benefits['catalog'][i]
+            list_temp.clear()
+            table_number = 0
+            data_exist = False
+            is_periods_data = False
+            path = 'https://api.nfz.gov.pl/app-stat-api-jgp/index-of-tables?catalog=' + catalog + '&format=json&api-version=1.0&name=' + name_parsed
+            delta = time.time() - time1
+            json_file = get_json(path, delta)
+            time1 = time.time()
+            if (json_file['data'] != None):
+                years_number = len(json_file['data']['attributes']['years'])
+                for k in range(years_number):
+                    data_year = json_file['data']['attributes']['years'][k]['year']
+                    if (data_year == year):
+                        data_exist = True
+                        table_number = k
+                        if (type(json_file['data']['attributes']['years'][k]['periods']) == list): # Is data period or full-year
+                            is_periods_data = True
+                        else:
+                            is_periods_data = False
+            if (data_exist):
+                json_file_subdata = json_file['data']['attributes']['years'][table_number]
+                if (not is_periods_data):
+                    for j in range(len(json_file_subdata['tables'])):
+                        table_header = json_file_subdata['tables'][j]['attributes']['header']
+                        table_id = json_file_subdata['tables'][j]['id']
+                        table_type = json_file_subdata['tables'][j]['type']
+                        table_link = json_file_subdata['tables'][j]['links']['related']
+                        period = str(year)
+                        list_temp.append([catalog, name, year, period, table_id, table_header, table_type, table_link])
+                else:
+                    for j in range(len(json_file_subdata['periods'][0]['tables'])):
+                        table_header = json_file_subdata['periods'][0]['tables'][j]['attributes']['header']
+                        table_id = json_file_subdata['periods'][0]['tables'][j]['id']
+                        table_type = json_file_subdata['periods'][0]['tables'][j]['type']
+                        table_link = json_file_subdata['periods'][0]['tables'][j]['links']['related']
+                        date_from = json_file_subdata['periods'][0]['date-from']
+                        date_to = json_file_subdata['periods'][0]['date-to']
+                        period = date_from + '-' + date_to
+                        list_temp.append([catalog, name, year, period, table_id, table_header, table_type, table_link])
+                df = pd.DataFrame(list_temp, columns = ['catalog', 'name', 'year', 'period', 'id', 'header', 'type', 'link'])
+                index_of_tables = index_of_tables.append(df)
+        index_of_tables = index_of_tables.drop_duplicates()
+        index_of_tables.to_csv(filepath, index = False)   
+        print('Runtime - index-of-tables-' + str(year) + ': ' + str(round(time.time() - start_time, 2)))
     filenames.append('data/annual/index-of-tables-' + str(year) + '.csv')
 pd.concat([pd.read_csv(f) for f in filenames]).to_csv('data/index-of-tables.csv', index=False )
 
-# Downloading data and creating tables with medical data
-for year in year_list:
-    for table in table_list:
+# Downloading data and creating the tables with medical statistics
+for year in years:
+    for table in tables:
         medical_data(year, table)
     
-# Joining tables
-for table_name in table_list:
+# Joining the tables
+for table in tables:
     filenames = []
-    for year in year_list:
-        filenames.append('data/annual/' + table_name + '-' + str(year) + '.csv') 
-    pd.concat([pd.read_csv(f) for f in filenames]).to_csv('data/' + table_name + '.csv', index=False )
+    for year in years:
+        filenames.append('data/annual/' + table + '-' + str(year) + '.csv') 
+    pd.concat([pd.read_csv(f) for f in filenames]).to_csv('data/' + table + '.csv', index=False )
     
 print("Data download successful!")
