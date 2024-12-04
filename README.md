@@ -5,7 +5,7 @@
 The National Health Fund of Poland provides API access to comprehensive medical statistics:  
 [API Documentation](https://api.nfz.gov.pl/app-stat-api-jgp)  
 
-Additionally, some data can be manually searched here:  
+Additionally, some data can be manually explored here:  
 [NFZ Statistics Portal](https://statystyki.nfz.gov.pl/Benefits)  
 
 ## Data Download
@@ -13,7 +13,7 @@ Additionally, some data can be manually searched here:
 This repository contains a Python script to automate the downloading of data from the NFZ API. The script can be found here:  
 [Download Script](https://github.com/tchoczewski/nfz/blob/master/download_data.py)  
 
-The selected data from the most recent years (2021-2023) is saved in the following directory:  
+The data for the most recent years (2021-2023) is saved in the following directory:  
 [Downloaded Data](https://github.com/tchoczewski/nfz/tree/master/data)  
 
 ## Data Structure
