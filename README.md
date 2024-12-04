@@ -1,4 +1,4 @@
-# National Health Fund of Poland (Narodowy Fundusz Zdrowia, NFZ) Medical Statistics
+# National Health Fund of Poland (Narodowy Fundusz Zdrowia, NFZ) Healthcare Statistics
 
 ## Data Source
 
