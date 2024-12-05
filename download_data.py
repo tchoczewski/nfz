@@ -18,14 +18,14 @@ import sys
 # Constants
 # =============================================================================
 
-# Maximum of 10 HTTP requests per second allowed by NFZ API rules
-TIME_API = 0.1
-
-# Maximum number of request attempts for a single URL
-MAX_ATTEMPTS = 10
-
 # API version used for the requests
 API_VERSION = "1.1"
+
+# Minimum delay between consecutive API requests to comply with NFZ rate limits
+TIME_API = 0.1  # 10 requests per second, i.e., 0.1 seconds between requests
+
+# Maximum number of request attempts for a single URL
+MAX_ATTEMPTS = 5
 
 
 # =============================================================================
@@ -139,7 +139,7 @@ def download_medical_data(year: int, table_type: str):
                                              ignore_index=True)
     medical_data = medical_data.drop_duplicates()
     medical_data.to_csv(filepath, index=False)
-    print(f"\nRuntime - {table_type}-{year}: {round(time.time() - start_time, 2)} s")
+    print(f"\nRuntime - {table_type}-{year}: {round(time.time() - start_time, 2)} s\n")
 
 
 def download_benefits():
@@ -172,7 +172,7 @@ def download_benefits():
             benefits = pd.concat([benefits, df], ignore_index=True)
     benefits = benefits.drop_duplicates()
     benefits.to_csv(filepath, index=False)
-    print(f"Runtime - benefits: {round(time.time() - start_time, 2)}")
+    print(f"Runtime - benefits: {round(time.time() - start_time, 2)} s\n")
 
 
 def download_index_of_tables(years):
@@ -193,7 +193,7 @@ def download_index_of_tables(years):
                                                 "type", "link"])
         for i in range(iterations):
             if (i % 10 == 0 or i == iterations - 1):
-                print(f"\rindex-of-tables-{year}: {round(i * 100 / iterations, 1)}%", end="")
+                print(f"\rindex-of-tables-{year}: {round((i + 1) * 100 / iterations, 1)}%", end="")
             name = benefits["name"][i]
             name_parsed = urllib.parse.quote(name)
             catalog = benefits["catalog"][i]
@@ -250,7 +250,7 @@ def download_index_of_tables(years):
                                             ignore_index=True)
         index_of_tables = index_of_tables.drop_duplicates()
         index_of_tables.to_csv(filepath, index=False)
-        print(f"Runtime - index-of-tables-{year}: {round(time.time() - start_time, 2)} s")
+        print(f"\nRuntime - index-of-tables-{year}: {round(time.time() - start_time, 2)} s\n")
         filenames.append(f"data/annual/index-of-tables-{year}.csv")
     if filenames:
         pd.concat([pd.read_csv(f) for f in filenames]).to_csv(
