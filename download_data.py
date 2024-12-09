@@ -12,6 +12,7 @@ import time
 import urllib.parse
 import os
 import sys
+import zipfile
 
 
 # =============================================================================
@@ -57,6 +58,7 @@ tables = [
 
 def get_json(path: str, delta: float):
     """Fetch JSON data from a given URL with retry logic."""
+
     if delta <= TIME_API:
         time.sleep(TIME_API - delta)
     attempts = 0
@@ -76,6 +78,7 @@ def get_json(path: str, delta: float):
 
 def create_directory(directory_path: str):
     """Ensure that a directory exists, create it if necessary."""
+
     if not os.path.isdir(directory_path):
         try:
             os.makedirs(directory_path)
@@ -90,6 +93,7 @@ def create_directory(directory_path: str):
 
 def download_medical_data(year: int, table_type: str):
     """Download medical data for a specific year and table type."""
+
     filepath = f"data/annual/{table_type}-{year}.csv"
     if os.path.isfile(filepath):
         return
@@ -144,7 +148,8 @@ def download_medical_data(year: int, table_type: str):
 
 def download_benefits():
     """Download and save benefits catalog."""
-    print(f"Downloading benefits table...")
+
+    print("Downloading benefits table...")
     filepath = "data/benefits.csv"
     start_time = time.time()
     time1 = start_time
@@ -175,6 +180,7 @@ def download_benefits():
 
 def download_index_of_tables(years):
     """Download and save the index of all available tables."""
+
     filenames = []
     for year in years:
         filepath = f"data/annual/index-of-tables-{year}.csv"
@@ -257,21 +263,36 @@ def download_index_of_tables(years):
 
 def download_selected_medical_tables(years, tables):
     """Download medical data for selected years and tables."""
+
     for year in years:
         for table in tables:
             download_medical_data(year, table)
 
 
-def join_tables(years, tables):
-    """Join tables for all years."""
+def join_and_zip_tables(years, tables):
+    """Join tables for all years, zip all resulting CSVs into one ZIP file,
+    and delete the CSVs."""
+
+    csv_files = []
     for table in tables:
-        print(f"Joining tables {table}...")
-        filenames = []
-        for year in years:
-            filenames.append(f"data/annual/{table}-{year}.csv")
-        pd.concat(
-            [pd.read_csv(f) for f in filenames]).to_csv(f"data/{table}.csv",
-                                                        index=False)
+        print(f"Joining {table} tables...")
+        filenames = [f"data/annual/{table}-{year}.csv" for year in years]
+        combined_data = pd.concat([pd.read_csv(f) for f in filenames])
+        output_csv = os.path.join("data", f"{table}.csv")
+        combined_data.to_csv(output_csv, index=False)
+        csv_files.append(output_csv)
+
+    # Now create a ZIP file and add all the CSV files
+    zip_file = 'data/joined_tables.zip'
+    with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for file in csv_files:
+            zipf.write(file, os.path.basename(file))
+
+    # After zipping the files, remove the CSV files
+    for file in csv_files:
+        os.remove(file)
+
+    print(f"All tables have been joined and zipped into {zip_file}.")
 
 
 # =============================================================================
@@ -286,9 +307,9 @@ def main():
     download_benefits()
     download_index_of_tables(years)
     download_selected_medical_tables(years, tables)
-    print("Data download successful!\n")
+    print("Data download complete!\n")
 
-    join_tables(years, tables)
+    join_and_zip_tables(years, tables)
 
 
 if __name__ == "__main__":
