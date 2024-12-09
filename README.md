@@ -13,7 +13,7 @@ Additionally, some data can be manually explored here:
 This repository contains a Python script to automate the downloading of data from the NFZ API. The script can be found here:  
 [Download Script](https://github.com/tchoczewski/nfz/blob/master/download_data.py)  
 
-The data for the most recent years (2021-2023) is saved in the following directory:  
+The data for the years 2009-2023 is saved in the following directory:  
 [Downloaded Data](https://github.com/tchoczewski/nfz/tree/master/data)  
 
 ## Data Structure
