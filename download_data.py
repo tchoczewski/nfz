@@ -283,8 +283,8 @@ def join_and_zip_tables(years, tables):
         csv_files.append(output_csv)
 
     # Now create a ZIP file and add all the CSV files
-    zip_file = 'data/joined_tables.zip'
-    with zipfile.ZipFile(zip_file, 'w', zipfile.ZIP_DEFLATED) as zipf:
+    zip_file = "data/joined_tables.zip"
+    with zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED) as zipf:
         for file in csv_files:
             zipf.write(file, os.path.basename(file))
 
