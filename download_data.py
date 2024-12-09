@@ -25,7 +25,7 @@ API_VERSION = "1.1"
 TIME_API = 0.1  # 10 requests per second, i.e., 0.1 seconds between requests
 
 # Maximum number of request attempts for a single URL
-MAX_ATTEMPTS = 5
+MAX_ATTEMPTS = 10
 
 
 # =============================================================================
@@ -33,7 +33,7 @@ MAX_ATTEMPTS = 5
 # =============================================================================
 
 # Years to download data for
-years = [2021, 2022, 2023]
+years = list(range(2009, 2024))
 
 # List of tables to download data for
 tables = [
@@ -144,10 +144,8 @@ def download_medical_data(year: int, table_type: str):
 
 def download_benefits():
     """Download and save benefits catalog."""
+    print(f"Downloading benefits table...")
     filepath = "data/benefits.csv"
-    if os.path.isfile(filepath):
-        return
-
     start_time = time.time()
     time1 = start_time
     catalogs = ["1a", "1b", "1c", "1d", "1w"]
@@ -267,6 +265,7 @@ def download_selected_medical_tables(years, tables):
 def join_tables(years, tables):
     """Join tables for all years."""
     for table in tables:
+        print(f"Joining tables {table}...")
         filenames = []
         for year in years:
             filenames.append(f"data/annual/{table}-{year}.csv")
@@ -287,9 +286,9 @@ def main():
     download_benefits()
     download_index_of_tables(years)
     download_selected_medical_tables(years, tables)
-    join_tables(years, tables)
+    print("Data download successful!\n")
 
-    print("Data download successful!")
+    join_tables(years, tables)
 
 
 if __name__ == "__main__":
