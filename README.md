@@ -16,8 +16,8 @@ This repository contains a Python script to automate the downloading of data fro
 The data for the years 2009-2023 is saved in the following directory:  
 [Downloaded Data](https://github.com/tchoczewski/nfz/tree/master/data)  
 
-Additionally, the combined data for all years (2009-2023) has been compressed into a single ZIP file:  
-[Download Combined Data (ZIP)](https://github.com/tchoczewski/nfz/blob/master/data/joined_tables.zip)
+The combined data for all years (2009-2023) has been compressed into a single ZIP file:  
+[Download Combined Data (ZIP)](https://github.com/tchoczewski/nfz/raw/master/data/joined_tables.zip)
 
 ## Data Structure
 
