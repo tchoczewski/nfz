@@ -73,7 +73,7 @@ The script automatically:
 - File format: **CSV**
 - Encoding: **UTF-8**
 - Delimiter: **comma (`,`)**
-- One file per year, DRG (JGP), and data category
+- One file per year and data category
 
 ---
 
