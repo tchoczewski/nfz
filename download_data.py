@@ -33,10 +33,10 @@ MAX_ATTEMPTS = 10
 # Parameters
 # =============================================================================
 
-# Years to download data for
-years = list(range(2009, 2024))
+# Years list
+years = list(range(2009, 2025))
 
-# List of tables to download data for
+# List of medical tables
 tables = [
     "general-data",
     "hospitalization-by-age",
